@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="icon" type="image/png" href="https://www.pcom.edu/_resources/images/favicon.png">
+		<link rel="stylesheet" type="text/css" href="https://d3s1hlfjjwhvha.cloudfront.net/web/css/root.css">
+		<link rel="stylesheet" type="text/css" href="checkout.css">
+		<script src="scripts.js"></script>
+		<title>PCOM Library <%= campus_short %> Self-Checkout</title>
+	</head>
+	<body>
+		<header>
+			<h1>
+				<img src="https://d3s1hlfjjwhvha.cloudfront.net/web/images/pcom-library-logo-dark-bg.svg" alt=""> 
+				<div>
+					<span class="sr-only">PCOM Library</span> Self-Checkout <%= campus_long %>
+				</div>
+			</h1>
+		</header>
+		
+		<main>
+
+			<form id="checkout_form" autocomplete="off" method="post" 
+			 action="/api/run/confirm">
+			 	
+				<fieldset class="active-step" id="step1">
+					<legend>1. User your PCOM ID to enter your patron barcode.</legend>
+					<div class="step">
+						<div class="step-input">
+							<label>
+								<span>Patron Barcode:</span>
+								<input id="patron_barcode" name="patron_barcode" type="text" max-length="9" aria-describedby="id-instructions" value="000100373">
+							</label>
+						</div>
+						<div class="step-instruction">
+							<p id="id-instructions">
+								Place your PCOM ID near the WaveID Reader. The red LED will change to green and you will hear a beep.
+							</p>
+							<div class="photo-group">
+								<img src="card-reader-example.png" alt="Showing how the WaveID card reader changes from a red LED light to a green LED light when a PCOM ID card is brought near it.">
+							</div>
+						</div>
+						<div class="step-nav">
+							<button type="button" id="to-book">Next</button>
+						</div>
+					</div>
+				</fieldset>
+				
+				<fieldset id="step2">
+					<legend>2. Scan the book's barcode on the front cover. </legend>
+					<div class="step">
+						<div class="step-input">
+							<label>
+								<span>Book Barcode:</span>
+								<input id="book_barcode" name="book_barcode" type="text" max-length="9" aria-describedby="book-instructions" value="32243001731197">
+							</label>
+						</div>
+						<div class="step-instruction">
+							<p id="book-instructions">
+								Place the the barcode on the FRONT OF THE BOOK under the scanner. 
+							</p>
+							<div class="photo-group">
+								<img src="book-scanner.png" alt="The barcode scanner in its stand.">
+								<img src="book-barcode.png" alt="Front cover a book with a barcode sticker in the upper left corner. A red scan line is over the barcode.">
+							</div>
+						</div>
+						<div class="step-nav">
+							<button type="button" id="back-to-id">Previous</button>
+							<button type="submit" id="to-checkout" form="checkout_form">Next</button>
+						</div>
+					</div>
+				</fieldset>
+			</form>
+		</main>
+	</body>
+</html>
