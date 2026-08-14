@@ -1,0 +1,29 @@
+{
+  "name": "pcom-selfcheckout",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PCOM-Library/PCOM-SelfCheckout.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PCOM-Library/PCOM-SelfCheckout/issues"
+  },
+  "homepage": "https://github.com/PCOM-Library/PCOM-SelfCheckout#readme",
+  "dependencies": {
+    "body-parser": "^2.3.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1"
+  },
+  "type": "commonjs",
+  "devDependencies": {}
+}
