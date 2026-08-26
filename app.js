@@ -43,36 +43,111 @@ app.get('/', (request, response) => {
 	response.render('checkout', {});
 });
 
-app.post('/api/run/confirm', (req, res) => {
+app.post('/api/run/confirm', async (request, response) => {
 	let api = new CheckoutApiController(foliohost, tenant, username, password, servicepoint);
-	let body = req.body;
+	let body = request.body;
 	let book_barcode = body.book_barcode;
 	let patron_barcode = body.patron_barcode;
-	// patron_barcode = '000000543';
+	//patron_barcode = '000000543';
+	// book_barcode = '32243001436003';
+	//book_barcode = '32243001734480';
 	
-	let user, item, autoBlocks, manualBlocks;
+	
+	let error_flag = false;
+	let error_msg = 
+		'Unable to complete self-checkout at this time. Please see library staff for assistance.';
+	
+	let user, item;
 	api.getUserData(patron_barcode).then(data => {
+		// Grab patron data and confirm patron exists and is active
 		let userJSON = JSON.parse(data);
-		user = userJSON['users'][0]; // collapse to only the first user
+		// check that a singular user was found
+		if(userJSON.totalRecords != 1) {
+			error_flag = true;
+			error_msg = 'Unable to find patron with barcode ' + patron_barcode + '. Please try again.'; 
+			throw new Error(error_msg);
+		}
+		
+		// collapse to only the first user
+		user = userJSON['users'][0]; 
+		
+		// check if user is active
+		if(!user.active) {
+			error_flag = true;
+			error_msg = 'Patron (barcode: ' + patron_barcode + ') account is not activated.';
+			throw new Error(error_msg);
+		}
+		
 		return api.getAutoBlocks(user.id);
 	}).then(data => {
-		autoBlocks = JSON.parse(data);
-		console.log(autoBlocks);
+		// Check for Automatic Blocks on Patron
+		let autoBlocks = JSON.parse(data);
+		if(autoBlocks.automatedPatronBlocks.length > 0) {
+			for(b of autoBlocks.automatedPatronBlocks) {
+				if(b.blockBorrowing) {
+					error_flag = true;
+					error_msg = 'Patron (barcode: ' + patron_barcode + ') account is blocked from borrowing.';
+					throw new Error(error_msg);
+				}
+			}
+		}
+		
 		return api.getManualBlocks(user.id);
 	}).then(data => {
-		console.log('manual', data);
-		manualBlocks = JSON.parse(data);
-		console.log(manualBlocks);
-		// if(canBorrow(user,blocks)) {
-			// console.log("CAN BORROW");
-		// }
-		// else {
-			// console.log('CANNOT BORROW');
-		// }
+		// Check for Manual Blocks on Patron
+		let manualBlocks = JSON.parse(data);
+		if(manualBlocks.totalRecords > 0) {
+			for(b of manualBlocks.manualblocks) {
+				if(b.borrowing) {
+					error_flag = true;
+					error_msg = 'Patron (barcode: ' + patron_barcode + ') account is blocked from borrowing.';
+					throw new Error(error_msg);
+				}
+			}
+		}
+		return api.getItemData(book_barcode)
+	}).then( data => {
+		// Check Item Data
+		
+		// 1 item
+		// can circulate - Permanent Loan Type
+		// stats available
+		// material type or what for reserves?
+		// 
+		let itemJSON = JSON.parse(data);
+		if(itemJSON.totalRecords != 1) {
+			error_flag = true;
+			error_msg = 'Unable to find item with barcode ' + book_barcode + '. Please try again.'; 
+			throw new Error(error_msg);
+		}
+				
+		// collapse to only the first user
+		item = itemJSON['items'][0]; 
+		api.getInstanceFromItem(item);
+		
+		
+		if(item.permanentLoanType.name == 'Does not circulate') {
+			error_flag = true;
+			error_msg = 'The following items is for <b>in-library use only</b> and cannot be checked out:'
+				+ '<div class="inset_item">' + item.title + '</div>';
+			throw new Error(error_msg);
+		}
+		else if(item.status.name != 'Available') {
+			error_flag = true;
+			error_msg = 'The following item (barcode: ' + book_barcode 
+				+ ') is not currently available for checkout:'
+				+ '<div class="inset_item">' + item.title + '</div>';
+			throw new Error(error_msg);
+		}
+		
 	}).catch(error => {
-		console.error('Error fetching data:', error);
+		if(error_flag) // not a data fetching or JS error 
+			return response.render('error_page', {'error_msg': error_msg});
+		else
+			console.error('Error fetching data:', error);
+	}).finally(() => {
+		console.log('SUCCESS!');
 	});
-	
 	
 	// Promise.all([
 		// api.getUserData(patron_barcode),
@@ -84,23 +159,13 @@ app.post('/api/run/confirm', (req, res) => {
 	// api.checkoutItem(patron_barcode, book_barcode);
 	
 
-	res.sendFile(path.join(__dirname,'error.html'));
+	//response.sendFile(path.join(__dirname,'error.html'));
 });
 
-function canBorrow(user, blocks) {
-	console.log(user, blocks);
-	
-	if(!user.active)
-		return false;
 
-	let isBlocked = false;
-	for(b of blocks.automatedPatronBlocks)
-		isBlocked = isBlocked && b.blockBorrowing;
-	
-	return !isBlocked;
-}
 
 
 app.post('/api/run/checkout', (request, response) => {
 	console.log("POST RECEIVED");
 });
+

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="icon" type="image/png" href="https://www.pcom.edu/_resources/images/favicon.png">
+		<link rel="stylesheet" type="text/css" href="https://d3s1hlfjjwhvha.cloudfront.net/web/css/root.css">
+		<link rel="stylesheet" type="text/css" href="/checkout.css">
+		<script src="/scripts.js"></script>
+		<title>Error: PCOM Library Self-Checkout</title>
+	</head>
+	<body>
+		<header>
+			<h1>
+				<img src="https://d3s1hlfjjwhvha.cloudfront.net/web/images/pcom-library-logo-dark-bg.svg" alt=""> 
+				<div>
+					<span class="sr-only">PCOM Library</span> Self-Checkout <%= campus_long %>
+				</div>
+			</h1>
+		</header>
+		
+		<main>
+			<div class="error_message">
+				<p><%- error_msg %></p>
+				<p>If problems persist or you believe this is in error, contact library staff for assistance.</p>
+				<p>Returning to self-checkout form in <span id="timer">20 seconds</span>.</p>
+			</div>
+			
+		</main>
+		<footer>
+			Return to <a href="/">Start of Self-Checkout</a>
+		</footer>
+		<script>
+			var seconds_left = 240;
+			var interval = setInterval(function() {
+				seconds_left = seconds_left -1;
+				if(seconds_left > 1)
+					document.getElementById('timer').innerHTML = seconds_left + ' seconds';
+				else if(seconds_left == 1)
+					document.getElementById('timer').innerHTML = seconds_left + ' second';
+				else if (seconds_left <= 0) {
+					 document.getElementById('timer').innerHTML = '0 seconds'; 
+					 clearInterval(interval);
+					 window.location.href= '/'; 
+				}
+			}, 1000);
+		</script>
+	</body>
+</html>
