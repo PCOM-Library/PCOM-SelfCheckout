@@ -20,37 +20,62 @@ class CheckoutApiController {
 			this.token = await this.generateToken();
 	}
 	async generateToken() {
-		let data = await restTokenPost(this.foliohost, this.tenant, this.username, this.password);
-		let token = {};
-		token['value'] = data[0];
-		let timestamps = JSON.parse(data[1]);
-		token['expire'] = new Date(timestamps.accessTokenExpiration);
+		let token = await getOkapiToken(this.foliohost, this.tenant, this.username, this.password);
 		return token;
 	}
 	
 	// User API
 	async getUserData(userbarcode) {
 		await this.confirmToken();
-		let data = await restUserPost(this.foliohost, this.tenant, this.token.value, userbarcode);
+		let path = '/users?query=barcode==' + userbarcode;
+		let data = await okapiGet(path, this.foliohost, this.tenant, this.token.value);
 		return data;
 	}
 	
-	// Item API
+	// Inventory APIs
 	async getItemData(bookbarcode) {
 		await this.confirmToken();
-		let data = await restItemPost(this.foliohost, this.tenant, this.token.value, bookbarcode);
+		let path = '/inventory/items?query=barcode==' + bookbarcode;
+		let data = await okapiGet(path, this.foliohost, this.tenant, this.token.value);
 		return data;
+	}
+	async getHoldingsData(holdingsId) {
+		await this.confirmToken();
+		let path = '/holdings-storage/holdings/' + holdingsId;
+		let data = await okapiGet(path, this.foliohost, this.tenant, this.token.value);
+		console.log(data);
+		return data;
+	}
+	async getInstanceData(instanceId) {
+		await this.confirmToken();
+		let path = '/inventory/instances/' + instanceId;
+		let data = await okapiGet(path, this.foliohost, this.tenant, this.token.value);
+		console.log(data);
+		return data;
+	}
+	
+	async getInstanceFromItem(item) {
+		this.getHoldingsData(item.holdingsRecordId).then(data => {
+			console.log('Holdings:');
+			let holding = JSON.parse(data);
+			return this.getInstanceData(holding.instanceId);
+		}).then(data => {
+			console.log('Instance:');
+			console.log(data);
+		});
 	}
 	
 	// Blocks APIs
 	async getAutoBlocks(userid) {
 		await this.confirmToken();
-		let data = await restAutoBlocksPost(this.foliohost, this.tenant, this.token.value, userid);
+		let path = '/automated-patron-blocks/' + userid;
+		let data = await okapiGet(path, this.foliohost, this.tenant, this.token.value);
 		return data;
 	}
 	async getManualBlocks(userid) {
 		await this.confirmToken();
-		let data = await restManualBlocksPost(this.foliohost, this.tenant, this.token.value, userid);
+		let path = '/manualblocks?query=userId==' + userid;
+		let data = await okapiGet(path, this.foliohost, this.tenant, this.token.value, userid);
 		return data;
 	}
 	
@@ -60,10 +85,52 @@ class CheckoutApiController {
 		let data = await restCheckoutPost(this.foliohost, this.servicepoint, this.tenant, this.token.value, userbarcode, bookbarcode);
 		return data;
 	}
-	
 }
 
-async function restTokenPost(foliohost, tenant, username, password) {
+async function okapiGet(apipath, foliohost, tenant, token) {
+	return new Promise((resolve,_) => {
+		const path = apipath;
+		const method = 'GET';
+		const options = {
+				hostname: foliohost,
+				path: path,
+				method: method,
+				headers: {
+					'X-Okapi-Tenant': tenant,
+					'X-Okapi-Token': token,
+					'Content-Type': 'application/json',
+				},
+		};
+		let headers = {};
+		let data = '';
+		const request = https.request(options, (response) => {
+			// set the encoding to avoid gibberish binary data
+			response.setEncoding('utf8');
+			
+			headers = response.headers;
+			// As data starts streaming in, add each chunk to "data"
+			response.on('data', (chunk) => {
+				data += chunk;
+			});
+		
+			// The whole response has been received. Print out the result.
+			response.on('end', () => {
+				return resolve(data);
+			});
+		});
+		
+		// Log errors if any occur
+		request.on('error', (error) => {
+			console.error(error);
+		});
+		
+		// End the request
+		request.end();
+	});
+};
+
+/* Returns a token object of {value: string, expire: Date} */
+async function getOkapiToken(foliohost, tenant, username, password) {
 	return new Promise((resolve,_) => {
 		const path = '/authn/login-with-expiry';
 		const method = 'POST';
@@ -87,8 +154,6 @@ async function restTokenPost(foliohost, tenant, username, password) {
 		const request = https.request(options, (response) => {
 			// set the encoding to avoid gibberish binary data
 			response.setEncoding('utf8');
-			
-			
 			headers = response.headers;
 			// As data starts streaming in, add each chunk to "data"
 			response.on('data', (chunk) => {
@@ -97,9 +162,12 @@ async function restTokenPost(foliohost, tenant, username, password) {
 		
 			// The whole response has been received. Print out the result.
 			response.on('end', () => {
-				const regex = /folioAccessToken=(\S+); /gm;
-				let token = regex.exec(headers['set-cookie'][0])[1];
-				return resolve([token,data]);
+				const token_regex = /folioAccessToken=(\S+); /gm;
+				const exp_regex = /accessTokenExpiration":"(.+)",/gm;
+				let token = {};
+				token['value'] = token_regex.exec(headers['set-cookie'][0])[1];
+				token['expire'] = exp_regex.exec(data)[1];
+				return resolve(token);
 			});
 		});
 		
@@ -114,176 +182,6 @@ async function restTokenPost(foliohost, tenant, username, password) {
 		request.end();
 	});
 };
-
-async function restUserPost(foliohost, tenant, token, userbarcode) {
-	return new Promise((resolve,_) => {
-		const path = '/users?query=barcode==' + userbarcode;
-		const method = 'GET';
-		const options = {
-				hostname: foliohost,
-				path: path,
-				method: method,
-				headers: {
-					'X-Okapi-Tenant': tenant,
-					'X-Okapi-Token': token,
-					'Content-Type': 'application/json',
-				},
-		};
-		let headers = {};
-		let data = '';
-		const request = https.request(options, (response) => {
-			// set the encoding to avoid gibberish binary data
-			response.setEncoding('utf8');
-			
-			headers = response.headers;
-			// As data starts streaming in, add each chunk to "data"
-			response.on('data', (chunk) => {
-				data += chunk;
-			});
-		
-			// The whole response has been received. Print out the result.
-			response.on('end', () => {
-				return resolve(data);
-			});
-		});
-		
-		// Log errors if any occur
-		request.on('error', (error) => {
-			console.error(error);
-		});
-		
-		// End the request
-		request.end();
-	});
-};
-
-async function restItemPost(foliohost, tenant, token, bookbarcode) {
-	return new Promise((resolve,_) => {
-		const path = '/inventory/items?query=barcode==' + bookbarcode;
-		const method = 'GET';
-		const options = {
-				hostname: foliohost,
-				path: path,
-				method: method,
-				headers: {
-					'X-Okapi-Tenant': tenant,
-					'X-Okapi-Token': token,
-					'Content-Type': 'application/json',
-				},
-		};
-		let headers = {};
-		let data = '';
-		const request = https.request(options, (response) => {
-			// set the encoding to avoid gibberish binary data
-			response.setEncoding('utf8');
-			
-			headers = response.headers;
-			// As data starts streaming in, add each chunk to "data"
-			response.on('data', (chunk) => {
-				data += chunk;
-			});
-		
-			// The whole response has been received. Print out the result.
-			response.on('end', () => {
-				return resolve(data);
-			});
-		});
-		
-		// Log errors if any occur
-		request.on('error', (error) => {
-			console.error(error);
-		});
-		
-		// End the request
-		request.end();
-	});
-};
-
-async function restAutoBlocksPost(foliohost, tenant, token, userid) {
-	return new Promise((resolve,_) => {
-		const path = '/automated-patron-blocks/' + userid;
-		const method = 'GET';
-		const options = {
-				hostname: foliohost,
-				path: path,
-				method: method,
-				headers: {
-					'X-Okapi-Tenant': tenant,
-					'X-Okapi-Token': token,
-					'Content-Type': 'application/json',
-				},
-		};
-		let headers = {};
-		let data = '';
-		const request = https.request(options, (response) => {
-			// set the encoding to avoid gibberish binary data
-			response.setEncoding('utf8');
-			
-			headers = response.headers;
-			// As data starts streaming in, add each chunk to "data"
-			response.on('data', (chunk) => {
-				data += chunk;
-			});
-		
-			// The whole response has been received. Print out the result.
-			response.on('end', () => {
-				return resolve(data);
-			});
-		});
-		
-		// Log errors if any occur
-		request.on('error', (error) => {
-			console.error(error);
-		});
-		
-		// End the request
-		request.end();
-	});
-};
-
-async function restManualBlocksPost(foliohost, tenant, token, userid) {
-	return new Promise((resolve,_) => {
-		const path = '/manualblocks?query=userid==' + userid;
-		console.log(path);
-		const method = 'GET';
-		const options = {
-				hostname: foliohost,
-				path: path,
-				method: method,
-				headers: {
-					'X-Okapi-Tenant': tenant,
-					'X-Okapi-Token': token,
-					'Content-Type': 'application/json',
-				},
-		};
-		let headers = {};
-		let data = '';
-		const request = https.request(options, (response) => {
-			// set the encoding to avoid gibberish binary data
-			response.setEncoding('utf8');
-			
-			headers = response.headers;
-			// As data starts streaming in, add each chunk to "data"
-			response.on('data', (chunk) => {
-				data += chunk;
-			});
-		
-			// The whole response has been received. Print out the result.
-			response.on('end', () => {
-				return resolve(data);
-			});
-		});
-		
-		// Log errors if any occur
-		request.on('error', (error) => {
-			console.error('ManualBlocks Error: ', error);
-		});
-		
-		// End the request
-		request.end();
-	});
-};
-
 
 async function restCheckoutPost(foliohost, servicepoint, tenant, token, userbarcode, itembarcode) {
 	return new Promise((resolve,_) => {
@@ -319,7 +217,52 @@ async function restCheckoutPost(foliohost, servicepoint, tenant, token, userbarc
 		
 			// The whole response has been received. Print out the result.
 			response.on('end', () => {
-				console.log(data);
+				return resolve(data);
+			});
+		});
+		
+		// Log errors if any occur
+		request.on('error', (error) => {
+			console.error(error);
+		});
+
+		request.write(body);
+		
+		// End the request
+		request.end();
+	});
+};
+
+async function okapiPost(reqpath, reqbody, foliohost, tenantitembarcode) {
+	return new Promise((resolve,_) => {
+		const path = reqpath;
+		const method ='POST';
+		const body = JSON.stringify(reqbody);
+
+		const options = {
+				hostname: foliohost,
+				path: path,
+				method: method,
+				headers: {
+					'X-Okapi-Tenant': tenant,
+					'X-Okapi-Token': token,
+					'Content-Type': 'application/json',
+					'Content-Length': Buffer.byteLength(body),
+				}
+		 };
+
+		let data='';
+		const request = https.request(options, (response) => {
+			// Set the encoding, so we don't get log to the console a bunch of gibberish binary data
+			response.setEncoding('utf8');
+		
+			// As data starts streaming in, add each chunk to "data"
+			response.on('data', (chunk) => {
+				data += chunk;
+			});
+		
+			// The whole response has been received. Print out the result.
+			response.on('end', () => {
 				return resolve(data);
 			});
 		});

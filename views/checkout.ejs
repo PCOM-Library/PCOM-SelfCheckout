@@ -12,25 +12,25 @@
 	<body>
 		<header>
 			<h1>
-				<img src="https://d3s1hlfjjwhvha.cloudfront.net/web/images/pcom-library-logo-dark-bg.svg" alt=""> 
+				<img src="https://d3s1hlfjjwhvha.cloudfront.net/web/images/pcom-library-logo-dark-bg.svg" alt="">
 				<div>
 					<span class="sr-only">PCOM Library</span> Self-Checkout <%= campus_long %>
 				</div>
 			</h1>
 		</header>
-		
+
 		<main>
 
-			<form id="checkout_form" autocomplete="off" method="post" 
+			<form id="checkout_form" autocomplete="off" method="post"
 			 action="/api/run/confirm">
-			 	
+
 				<fieldset class="active-step" id="step1">
 					<legend>1. User your PCOM ID to enter your patron barcode.</legend>
 					<div class="step">
 						<div class="step-input">
 							<label>
 								<span>Patron Barcode:</span>
-								<input id="patron_barcode" name="patron_barcode" type="text" max-length="9" aria-describedby="id-instructions" value="000100373">
+								<input id="patron_barcode" name="patron_barcode" type="text" aria-describedby="id-instructions" value="000100373">
 							</label>
 						</div>
 						<div class="step-instruction">
@@ -46,19 +46,19 @@
 						</div>
 					</div>
 				</fieldset>
-				
+
 				<fieldset id="step2">
 					<legend>2. Scan the book's barcode on the front cover. </legend>
 					<div class="step">
 						<div class="step-input">
 							<label>
 								<span>Book Barcode:</span>
-								<input id="book_barcode" name="book_barcode" type="text" max-length="9" aria-describedby="book-instructions" value="32243001731197">
+								<input id="book_barcode" name="book_barcode" type="text" aria-describedby="book-instructions" value="32243001731197">
 							</label>
 						</div>
 						<div class="step-instruction">
 							<p id="book-instructions">
-								Place the the barcode on the FRONT OF THE BOOK under the scanner. 
+								Place the the barcode on the FRONT OF THE BOOK under the scanner.
 							</p>
 							<div class="photo-group">
 								<img src="book-scanner.png" alt="The barcode scanner in its stand.">
@@ -73,5 +73,8 @@
 				</fieldset>
 			</form>
 		</main>
+		<footer>
+			Return to <a href="/">Start of Self-Checkout</a>
+		</footer>
 	</body>
 </html>

@@ -1,21 +1,17 @@
 document.addEventListener("DOMContentLoaded", (event) => { 
 
 	/* Button navigations */
-	document.getElementById('to-book').addEventListener('click', event => {
-		moveToBook();
-	});
-	document.getElementById('back-to-id').addEventListener('click', event => {
-		moveToId();
-	});
+	if(	document.getElementById('to-book'))
+		document.getElementById('to-book').addEventListener('click', event => { moveToBook(); });
+	if( document.getElementById('back-to-id'))
+		document.getElementById('back-to-id').addEventListener('click', event => { moveToId(); });
 
 // listeners
-	document.getElementById('patron_barcode').addEventListener('keyup', event => {
-		if(event.code == 'Enter')
-			moveToBook();
-	});
-
-
-
+	if(document.getElementById('patron_barcode')) {
+		document.getElementById('patron_barcode').addEventListener('keyup', event => {
+			if(event.code == 'Enter') moveToBook();
+		});
+	}
 });
 
 function moveToId() {
