@@ -11,7 +11,7 @@ body {
 }
 header {
 	background-color: var(--pcom-dark-blue); 
-	padding: 16px 20px 22px;
+	padding: 12px 20px 18px;
 	
 	h1 {
 		display: flex;
@@ -19,16 +19,16 @@ header {
 		align-items: center;
 		margin: 0;
 		color: var(--pcom-white);
+		font-size: clamp(2rem, 8vh, 4.5rem);
 		
 		img {
 			display: block;
-			width: 200px;
+			width: 196px;
 			flex-grow: 0;
 		}
 		
 		div {
 			margin-left: 1.5rem;
-			font-size: 3rem;
 		}
 	}
 }
@@ -41,9 +41,9 @@ main {
 footer { 
 	background-color: var(--pcom-dark-blue);
 	color: var(--pcom-white);
-	font-size: 1.25rem;
+	font-size: clamp(1rem,2.25vh,1.5rem);
 	font-weight: 700;
-	padding: .75rem 0;
+	padding: 1rem 0;
 	text-align: center;
 	a, a:visited {
 		color: var(--pcom-cyan) !important;
@@ -55,6 +55,10 @@ footer {
 	a:focus, a:visited:focus {
 		color: var(--pcom-cyan) !important;
 	}
+}
+
+p {
+	line-height: 1.4em;
 }
 
 label {
@@ -84,7 +88,7 @@ input::placeholder {
 }
 
 button {
-	font-size: 1.5rem;
+	font-size: clamp(1rem,2.5vh,4rem);
 	font-weight: 700;
 	padding: .5rem 1.5rem;
 	border: solid 2px var(--pcom-blue);
@@ -118,47 +122,60 @@ form, fieldset {
 }
 
 fieldset {
+	font-size: clamp(1.5rem,4.25vh,4rem);
 	border: 0;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 	
 	legend {
-		font-size: 2rem;
 		font-weight: 700;
+		font-size: 1.25em;
 	}
 	
 	p { 
 		margin: 0;
 	}
 	.step {
-		width: 90%;
+		width: 100%;
 		height: 100%;
-		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
     flex-wrap: nowrap;
-    justify-content: space-around;
+    justify-content: space-evenly;
     align-content: flex-start;
     align-items: center;
 	}
 	.step-input {
-		font-size: 1.5rem;
 		white-space: nowrap;
+		font-size: 1.25em;
 	}
 	.step-instruction {
-		font-size: 1.25rem;
+		max-width: 90%;
 		background-color: var(--pcom-cool-gray);
 		border: solid 3px var(--pcom-dark-blue);
 		border-radius: 1rem;
-		padding: 1rem;
+		padding: 1rem 1.25rem;
 	}
 	
-	.step-nav {
+	.form-nav {
 		text-align: right;
 		width: 100%;
+		font-size: clamp(1rem,2vh,1.5rem);
+		
+		.button-bar {
+			display: flex;
+		}
 	}
 }
 
-fieldset#step2 .step-nav {
-	display: flex;
+fieldset#step1 .form-nav .button-bar {
+	justify-content: flex-end;
+}
+
+fieldset#step2 .form-nav .button-bar {
 	justify-content: space-between;
 }
 
@@ -167,6 +184,11 @@ fieldset .photo-group {
 	display: flex;
 	align-content: center;
 	justify-content: center;
+	
+	img {
+		height: 225px;
+	}
+		
 	
 	img + img {
 		margin-left: 5rem;

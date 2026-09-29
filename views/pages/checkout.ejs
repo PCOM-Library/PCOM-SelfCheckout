@@ -1,23 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link rel="icon" type="image/png" href="https://www.pcom.edu/_resources/images/favicon.png">
-		<link rel="stylesheet" type="text/css" href="https://d3s1hlfjjwhvha.cloudfront.net/web/css/root.css">
-		<link rel="stylesheet" type="text/css" href="checkout.css">
-		<script src="scripts.js"></script>
+		<!-- COMMON HEAD ELEMENTS -->
+<%- include('../partials/head.ejs') %>
+		<!-- END COMMON HEAD ELEMENTS -->
+		
 		<title>PCOM Library <%= campus_short %> Self-Checkout</title>
 	</head>
 	<body>
-		<header>
-			<h1>
-				<img src="https://d3s1hlfjjwhvha.cloudfront.net/web/images/pcom-library-logo-dark-bg.svg" alt="">
-				<div>
-					<span class="sr-only">PCOM Library</span> Self-Checkout <%= campus_long %>
-				</div>
-			</h1>
-		</header>
+	
+		<!-- COMMON HEADER -->
+<%- include('../partials/header') %>
+		<!-- END COMMON HEADER -->
 
 		<main>
 
@@ -41,7 +35,9 @@
 								<img src="card-reader-example.png" alt="Showing how the WaveID card reader changes from a red LED light to a green LED light when a PCOM ID card is brought near it.">
 							</div>
 						</div>
-						<div class="step-nav">
+					</div>
+					<div class="form-nav">
+						<div class="button-bar">
 							<button type="button" id="to-book">Next</button>
 						</div>
 					</div>
@@ -65,16 +61,20 @@
 								<img src="book-barcode.png" alt="Front cover a book with a barcode sticker in the upper left corner. A red scan line is over the barcode.">
 							</div>
 						</div>
-						<div class="step-nav">
+					</div>
+					<div class="form-nav">
+						<div class="button-bar">
 							<button type="button" id="back-to-id">Previous</button>
 							<button type="submit" id="to-checkout" form="checkout_form">Next</button>
 						</div>
-					</div>
+					</div>					
 				</fieldset>
 			</form>
 		</main>
-		<footer>
-			Return to <a href="/">Start of Self-Checkout</a>
-		</footer>
+		
+		<!-- COMMON FOOTER -->
+<%- include('../partials/footer') %>
+		<!-- END COMMON FOOTER -->
+	
 	</body>
 </html>
