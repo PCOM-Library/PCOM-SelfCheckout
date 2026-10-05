@@ -2,14 +2,14 @@
 <html lang="en">
 	<head>
 <%- include('../partials/head') %>
-		<title>User Error: PCOM Library Self-Checkout</title>
+		<title>Generic Error: PCOM Library Self-Checkout</title>
 	</head>
 	<body class="error">
 	
 		<!-- COMMON HEADER -->
 <%- include('../partials/header') %>
 		<!-- END COMMON HEADER -->
-		
+
 		<main>
 			<div id="content">
 				<h2>
@@ -19,6 +19,12 @@
 				</h2>
 				<div class="error_message">
 					<p><%- message %></p>
+					<% if(typeof exception_error != 'undefined') { %>
+					<div class="debug">
+						<h3>Debugging information:</h3>
+						<p><%= exception_error %></p>
+					</div>
+					<% } %>
 				</div>
 			</div>
 
@@ -31,5 +37,6 @@
 		<!-- END COMMON FOOTER -->
 
 <%- include('../partials/page_reset_script') %>
+		</script>
 	</body>
 </html>

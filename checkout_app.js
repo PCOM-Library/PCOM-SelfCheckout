@@ -192,10 +192,13 @@ app.post('/api/run/confirm', async (request, response) => {
 				return response.render('pages/user_error', error.variables);
 			else if(error.error_type == CheckoutErrorType.ITEM)
 				return response.render('pages/item_error', error.variables);
+			else 
+				return response.render('pages/generic_error', error.variables);
 		}
-		else
-			console.error('Error fetching data:', error);
-		
+		else {
+			error_vars.exception_error = error;
+			return response.render('pages/generic_error', error_vars);
+		}
 		console.log('exiting promise chain due to errors');
 		return;
 	}).finally(() => {

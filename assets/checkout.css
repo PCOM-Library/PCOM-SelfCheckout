@@ -275,38 +275,52 @@ body.error {
 			}
 		}
 	}
-	
-	#reset_message {
-		width: 90%;
-		display: flex;
-		align-items: center;
-		justify-content: center;		
-		
-		@media screen and (prefers-reduced-motion: reduce) {
-			.timebar {
-				width: 100% !important;
-			}
+
+	.debug {
+		margin: .5em 1em 0;
+		padding: .5rem;
+		border: dashed 3px var(--pcom-dark-red);
+		h3 {
+			margin: 0 0 .5em;
+			padding-bottom: 4px;
+			color: var(--pcom-dark-red);
+			border-bottom: solid 2px currentColor;
 		}
-		.timebar {
-			height: 8px;
-			background-color: var(--pcom-dark-red);
-		}
-		#left_bar {
-			border-top-left-radius: 4px;
-			border-bottom-left-radius: 4px;
-		}
-		#right_bar {
-			border-top-right-radius: 4px;
-			border-bottom-right-radius: 4px;
-		}		
-		#time_msg {
-			text-align: center;
-			padding: 0 .375ch;
-			white-space: nowrap;
-		}
-		#timer {
-			font-family: 'Fira Code';
+		h3, p {
+			font-size: .75em 
 		}
 	}
+}
+
+#reset_message {
+	width: 90%;
+	display: flex;
+	align-items: center;
+	justify-content: center;		
 	
+	@media screen and (prefers-reduced-motion: reduce) {
+		.timebar {
+			width: 100% !important;
+		}
+	}
+	.timebar {
+		height: 8px;
+		background-color: var(--pcom-dark-red);
+	}
+	#left_bar {
+		border-top-left-radius: 4px;
+		border-bottom-left-radius: 4px;
+	}
+	#right_bar {
+		border-top-right-radius: 4px;
+		border-bottom-right-radius: 4px;
+	}		
+	#time_msg {
+		text-align: center;
+		padding: 0 .375ch;
+		white-space: nowrap;
+	}
+	#timer {
+		font-family: 'Fira Code';
+	}
 }

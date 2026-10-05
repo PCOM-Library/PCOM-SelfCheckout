@@ -1,0 +1,29 @@
+		<script>
+			var lbar = document.getElementById('left_bar');
+			var rbar = document.getElementById('right_bar');
+			var time_msg = document.getElementById('time_msg');
+			var timer = document.getElementById('timer');
+
+			var totalWidth = reset_message.offsetWidth;
+			var barWidthMax = totalWidth - time_msg.offsetWidth - 1.5;
+			barWidthMax = barWidthMax / 2;
+			lbar.style.width = barWidthMax + 'px';
+			rbar.style.width = barWidthMax + 'px';
+			
+			var time_limit = 20;
+			var seconds_left = time_limit;
+			var interval = setInterval(function() {
+			
+				seconds_left = seconds_left - 1;
+				lbar.style.width = (barWidthMax * seconds_left / time_limit) + 'px';
+				rbar.style.width = (barWidthMax * seconds_left / time_limit) + 'px';
+				
+				if(seconds_left > 0)
+					timer.innerHTML = seconds_left.toString().padStart(2, '0');
+				else if (seconds_left <= 0) {
+					 timer.innerHTML = '00'; 
+					 clearInterval(interval);
+					 //window.location.href= '/'; 
+				}
+			}, 1000);
+		</script>
