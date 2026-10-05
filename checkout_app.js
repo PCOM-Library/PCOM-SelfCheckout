@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const ejs = require('ejs');
+const tc = require('title-case');
 const folioAPI = require('./FolioApiController');
+
 
 const dotenv = require('dotenv');
 dotenv.config({path: '.env-checkout'});
@@ -16,6 +18,18 @@ const port = process.env.PORT || 3000;
 const campusLong = process.env.CAMPUS_LONG || '';
 const campusShort = process.env.CAMPUS_SHORT || '';
 
+class CheckoutError extends Error {
+	constructor(vars, error_type) {
+		super('Checkout Error');
+		this.name = 'CheckoutError';
+		this.variables = vars;
+		this.error_type = error_type;
+	}
+}
+const CheckoutErrorType = {
+	USER: 'user',
+	ITEM: 'item'
+};
 
 const app = express();
 app.use(cors());
@@ -41,7 +55,7 @@ app.listen(port,hostname, () => {
 
 app.get('/', (request, response) => {
 	//response.sendFile(path.join(__dirname,'checkout.html'));
-	response.render('checkout', {});
+	response.render('pages/checkout', {});
 });
 
 app.post('/api/run/confirm', async (request, response) => {
@@ -52,30 +66,36 @@ app.post('/api/run/confirm', async (request, response) => {
 	//patron_barcode = '000000543';
 	//book_barcode = '32243001436003';
 	//book_barcode = '32243001734480';
-	
-	let error_flag = false;
-	let error_msg = 
+
+	let error_vars = {};
+	error_vars.book_barcode = book_barcode;
+	error_vars.patron_barcode = patron_barcode;
+	error_vars.heading = 'Unexpected Error';
+	error_vars.message = 
 		'Unable to complete self-checkout at this time. Please see library staff for assistance.';
 	
-	let user, item;
+	let user, item, cover_url;
 	folioAPI.getUserData(patron_barcode).then(data => {
 		// Grab patron data and confirm patron exists and is active
 		let userJSON = JSON.parse(data);
 		// check that a singular user was found
 		if(userJSON.totalRecords != 1) {
-			error_flag = true;
-			error_msg = 'Unable to find patron with barcode ' + patron_barcode + '. Please try again.'; 
-			throw new Error(error_msg);
+			error_vars.heading = 'User Not Found';
+			error_vars.message = 
+				'Unable to find patron with barcode ' + patron_barcode + '.';
+			throw new CheckoutError(error_vars, CheckoutErrorType.USER);
 		}
 
 		// collapse to only the first user
 		user = userJSON['users'][0]; 
+		error_vars.user = user;
 
 		// check if user is active
 		if(!user.active) {
-			error_flag = true;
-			error_msg = 'Patron (barcode: ' + patron_barcode + ') account is not activated.';
-			throw new Error(error_msg);
+			error_vars.heading = 'Inactive Account';
+			error_vars.message = 
+				'Patron (barcode: ' + patron_barcode + ') account is inactive.';
+			throw new CheckoutError(error_vars, CheckoutErrorType.USER);
 		}
 
 		return folioAPI.getAutoBlocks(user.id);
@@ -85,9 +105,10 @@ app.post('/api/run/confirm', async (request, response) => {
 		if(autoBlocks.automatedPatronBlocks.length > 0) {
 			for(b of autoBlocks.automatedPatronBlocks) {
 				if(b.blockBorrowing) {
-					error_flag = true;
-					error_msg = 'Patron (barcode: ' + patron_barcode + ') account is blocked from borrowing.';
-					throw new Error(error_msg);
+					error_vars.heading = 'Account Blocked';
+					error_vars.message = 
+						'Patron (barcode: ' + patron_barcode + ') account is currently blocked from borrowing. Contact library staff for details.';
+					throw new CheckoutError(error_vars, CheckoutErrorType.USER);
 				}
 			}
 		}
@@ -99,9 +120,10 @@ app.post('/api/run/confirm', async (request, response) => {
 		if(manualBlocks.totalRecords > 0) {
 			for(b of manualBlocks.manualblocks) {
 				if(b.borrowing) {
-					error_flag = true;
-					error_msg = 'Patron (barcode: ' + patron_barcode + ') account is blocked from borrowing.';
-					throw new Error(error_msg);
+					error_vars.heading = 'Account Blocked';
+					error_vars.message = 
+						'Patron (barcode: ' + patron_barcode + ') account is currently blocked from borrowing. Contact library staff for details.';
+					throw new CheckoutError(error_vars, CheckoutErrorType.USER);
 				}
 			}
 		}
@@ -115,40 +137,69 @@ app.post('/api/run/confirm', async (request, response) => {
 		*/ 
 		let itemJSON = JSON.parse(data);
 		if(itemJSON.totalRecords != 1) {
-			error_flag = true;
-			error_msg = 'Unable to find item with barcode ' + book_barcode + '. Please try again.'; 
-			throw new Error(error_msg);
+			error_vars.heading = 'Unknown Item';
+			error_vars.message = 
+				'Unable to find item with barcode ' + book_barcode + '.';
+			throw new CheckoutError(error_vars,CheckoutErrorType.ITEM);
 		}
 				
 		// collapse to only the first user
 		item = itemJSON['items'][0]; 
-		//folioAPI.getLCCNsFromItem(item);
-		//folioAPI.getISBNsFromItem(item);
-		//folioAPI.getInstanceFromItem(item);
-		// folioAPI.generateOpenLibraryDataUrlFromItem(item);
-		folioAPI.generateOpenLibraryImageUrlFromItem(item);
+		error_vars.item = item;
 
+		// parse the metadata in item title
+		let meta = item.title.split(' / ');
+		error_vars.item_title = tc.titleCase(meta[0]);
+		
+		if(meta.length > 1) {
+			let contributors = meta[1].split(' ; ');
+			if(contributors.length > 1) {
+				// grab only first contributor listing
+				error_vars.item_author = contributors[0];
+			}
+			else if(contributors.length == 1) {
+				// strip off the trailing period
+				error_vars.item_author = meta[1].slice(0,-1);
+			}
+		}
+
+		return folioAPI.generateOpenLibraryImageUrlFromItem(item);
+	}).then( data => {
+		/* Check Item Data:
+			- can circulate - Permanent Loan Type
+			- status is available
+		*/
+		cover_url = data;
+		if(cover_url.trim().length > 0)
+			error_vars.cover_url = cover_url;
+		
 		if(item.permanentLoanType.name == 'Does not circulate') {
-			error_flag = true;
-			error_msg = 'The following items is for <b>in-library use only</b> and cannot be checked out:'
-				+ '<div class="inset_item">' + item.title + '</div>';
-			throw new Error(error_msg);
+			error_vars.heading = 'In-Library Use Only';
+			error_vars.message = 
+				'The following item is for <b>in-library use only</b> and cannot be checked out:';
+			throw new CheckoutError(error_vars, CheckoutErrorType.ITEM);
 		}
 		else if(item.status.name != 'Available') {
-			error_flag = true;
-			error_msg = 'The following item (barcode: ' + book_barcode 
-				+ ') is not currently available for checkout:'
-				+ '<div class="inset_item">' + item.title + '</div>';
-			throw new Error(error_msg);
+			error_vars.heading = 'Unavailable for Checkout'
+			error_vars.message = 'The following item is not currently available for checkout:';
+			throw new CheckoutError(error_vars,CheckoutErrorType.ITEM);
 		}
 		
 	}).catch(error => {
-		if(error_flag) // not a data fetching or JS error 
-			return response.render('error_page', {'error_msg': error_msg});
+		if(error instanceof CheckoutError) { 
+			// not a data fetching or JS error so render error page 
+			if(error.error_type == CheckoutErrorType.USER)
+				return response.render('pages/user_error', error.variables);
+			else if(error.error_type == CheckoutErrorType.ITEM)
+				return response.render('pages/item_error', error.variables);
+		}
 		else
 			console.error('Error fetching data:', error);
+		
+		console.log('exiting promise chain due to errors');
+		return;
 	}).finally(() => {
-		console.log('SUCCESS!');
+		console.log('Promize chain complete');
 	});
 	
 });

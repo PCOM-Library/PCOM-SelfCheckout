@@ -65,30 +65,24 @@ class FolioApiController {
 		return data;
 	}
 	async getHoldingsData(holdingsId) {
-		console.log('getHoldingsData');
 		let token_value = await this.token_control.get();
 		let path = '/holdings-storage/holdings/' + holdingsId;
 		let {data, headers} = await okapiGet(path, this.foliohost, this.tenant, token_value);
 		return data;
 	}
 	async getInstanceData(instanceId) {
-		console.log('getInstanceData');
 		let token_value = await this.token_control.get();
 		let path = '/inventory/instances/' + instanceId;
 		let {data, headers} = await okapiGet(path, this.foliohost, this.tenant, token_value);
 		return data;
 	}
-
 	async getInstanceFromItem(item) {
 		let holding, instance;
 		let hdata = await this.getHoldingsData(item.holdingsRecordId);
 		holding = JSON.parse(hdata);
 		let idata = await this.getInstanceData(holding.instanceId);
-
-
 		return idata;
 	}
-
 
 	// LCCN Retrieval
 	async getLCCNsFromInstance(instance) {
@@ -254,6 +248,7 @@ class FolioTokenManager {
 		this.token_expire = null;
 	}
 	async get() {
+		console.log('Expire: ', this.token_expire,Date.now());
 		if(this.token_value === null)
 			await this.generateToken();
 		else if(this.token_expire < Date.now())
@@ -274,7 +269,7 @@ class FolioTokenManager {
 		var expire_regex = /accessTokenExpiration":"(.+)",/gm;
 
 		this.token_value = value_regex.exec(headers['set-cookie'][0])[1];
-		this.token_expire = expire_regex.exec(data)[1];
+		this.token_expire = Date.parse(expire_regex.exec(data)[1]);
 	}
 }
 

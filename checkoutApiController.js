@@ -14,6 +14,7 @@ class CheckoutApiController {
 	
 	// Token Management Functions
 	async confirmToken() {
+		console.log(this.token);
 		if(this.token === null) 
 			this.token = await this.generateToken();
 		else if(this.token.expire < Date.now())
