@@ -20,9 +20,9 @@
 				<div class="error_message">
 					<p><%- message %></p>
 					
-					<% if(typeof item != 'undefined') {%>
+					<% if(locals?.item) {%>
 						<div class="inset_item">
-							<% if(typeof cover_url != 'undefined') { %>
+							<% if(locals?.cover_url) { %>
 								<div class="book_cover">
 									<span id="cover_alt_start" hidden>Cover of</span>
 									<img src="<%= cover_url %>" aria-labelledby="cover_alt_start item_title">
@@ -35,7 +35,7 @@
 							</div>
 						</div>
 					<%}%>						
-					<% if(typeof cover_url != 'undefined') { %>
+					<% if(locals?.cover_url) { %>
 						<div class="cover_disclaimer">
 							(cover image may differ from library copy)
 						</div>
