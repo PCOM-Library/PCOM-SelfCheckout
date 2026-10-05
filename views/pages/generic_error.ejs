@@ -19,10 +19,9 @@
 				</h2>
 				<div class="error_message">
 					<p><%- message %></p>
-					<% if(typeof exception_error != 'undefined') { %>
+					<% if(locals?.exception_error && exception_error != 'Error') { %>
 					<div class="debug">
-						<h3>Debugging information:</h3>
-						<p><%= exception_error %></p>
+Man						<p><%= exception_error %></p>
 					</div>
 					<% } %>
 				</div>
