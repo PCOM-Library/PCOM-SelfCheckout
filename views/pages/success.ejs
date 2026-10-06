@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+<%- include('../partials/head') %>
+		<title>Success: PCOM Library Self-Checkout</title>
+	</head>
+	<body class="success">
+	
+		<!-- COMMON HEADER -->
+<%- include('../partials/header') %>
+		<!-- END COMMON HEADER -->
+
+<script>var env_vars = <%- JSON.stringify( locals ) %>;</script>
+
+		<main>
+			<div id="content">
+				<h2>
+					<span class="fa-solid fa-book-open-reader"></span>
+					Checkout Complete
+					<span class="fa-solid fa-book-open-reader"></span>
+				</h2>
+				<div class="message>
+					<p>
+						Thank you, <%= patronName %>. The following item is due back 
+						on <%= dueDate %> by <%= dueTime %>.
+					</p>
+					
+					<% if(locals?.item) {%>
+						<div class="inset_item">
+							<% if(locals?.cover_url) { %>
+								<div class="book_cover">
+									<span id="cover_alt_start" hidden>Cover of</span>
+									<img src="<%= cover_url %>" aria-labelledby="cover_alt_start item_title">
+								</div>
+							<% } %>
+							<div class="metadata">
+								<div class="title" id="item_title"><%= item_title %></div>
+								<hr aria-hidden="true">
+								<div class="author"><%= item_author %></div>
+							</div>
+						</div>
+					<%}%>						
+					<% if(locals?.cover_url) { %>
+						<div class="cover_disclaimer">
+							(cover image may differ from library copy)
+						</div>
+					<%}%>
+				</div>
+			</div>
+
+<%- include('../partials/page_reset_html') %>
+
+		</main>
+
+		<!-- COMMON FOOTER -->
+<%- include('../partials/footer') %>
+		<!-- END COMMON FOOTER -->
+
+<%- include('../partials/page_reset_script') %>
+	</body>
+</html>

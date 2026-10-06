@@ -6,14 +6,15 @@ const https = require('https');
 const dotenv = require('dotenv');
 
 class FolioApiController {
-	// Created as a singleton to reduce token requests */
+	// ********************************************
+	// Singleton Constructor
+	// Created as a singleton to reduce token requests
+	// ********************************************
 	static #instance;
-
 	constructor() {
 		console.log('FAC constructor');
 		if(!FolioApiController.#instance)
 			FolioApiController.#instance = this;
-
 
 		dotenv.config({path: '.env-api'});
 
@@ -28,7 +29,6 @@ class FolioApiController {
 
 		return FolioApiController.#instance;
 	}
-
 	static getInstance() {
 		console.log('FolioApiController get instance called.....');
 		if(!FolioApiController.#instance)
@@ -37,7 +37,10 @@ class FolioApiController {
 			return FolioApiController.#instance;
 	}
 
-		// Patron Data
+
+	// ********************************************
+	// Patron Data
+	// ********************************************
 	async getUserData(userbarcode) {
 		let token_value = await this.token_control.get();
 		let path = '/users?query=barcode==' + userbarcode;
@@ -57,7 +60,10 @@ class FolioApiController {
 		return data;
 	}
 
-		// Inventory
+
+	// ********************************************
+	// Inventory
+	// ********************************************
 	async getItemData(bookbarcode) {
 		let token_value = await this.token_control.get();
 		let path = '/inventory/items?query=barcode==' + bookbarcode;
@@ -84,7 +90,10 @@ class FolioApiController {
 		return idata;
 	}
 
+
+	// ********************************************
 	// LCCN Retrieval
+	// ********************************************
 	async getLCCNsFromInstance(instance) {
 		let regex = /(^\d+)/gm;
 		let lccns = [];
@@ -104,7 +113,10 @@ class FolioApiController {
 		return lccns;
 	}
 
+
+	// ********************************************
 	// ISBN Retrieval
+	// ********************************************
 	async getISBNsFromInstance(instance) {
 		let isbns = [];
 		for(let id of instance.identifiers) {
@@ -128,7 +140,29 @@ class FolioApiController {
 		return isbns;
 	}
 
+
+	// ********************************************
+	// Checkout Item
+	// ********************************************
+	async checkoutItemForUser(user, item, servicepoint) {
+		console.log('Attempting Checkout');
+		let token_value = await this.token_control.get();
+		let path = '/circulation/check-out-by-barcode';
+		let body = JSON.stringify({
+			userBarcode: user.barcode,
+			itemBarcode: item.barcode,
+			servicePointId: servicepoint,
+		});
+		
+		//apipath, body, foliohost, tenant, token = ''
+		let {data,headers} = await okapiPost(path, body, this.foliohost, this.tenant, token_value);
+		return data;
+	}
+
+
+	// ********************************************
 	// Open Library Cover Images
+	// ********************************************
 	async generateOpenLibraryQueryPathFromItem(item) {
 		const path_start = '/api/books?bibkeys=';
 		const path_end = '&format=json';
@@ -170,7 +204,6 @@ class FolioApiController {
 
 		return path;
 	}
-	
 	async queryOpenLibraryData(path) {
 		return new Promise((resolve,_) => {
 			const method = 'GET';
@@ -204,23 +237,30 @@ class FolioApiController {
 			// Log errors if any occur
 			request.on('error', (error) => {
 				console.error(error);
+				return resolve({},{});
 			});
 
 			// End the request
 			request.end();
 		});
 	}
-
 	async generateOpenLibraryImageUrlFromItem(item) {
 		let path = await this.generateOpenLibraryQueryPathFromItem(item);
 		let {data, headers} = await this.queryOpenLibraryData(path);
-		let results = JSON.parse(data);
+		let results;
+		try {
+			results = JSON.parse(data);
+		}
+		catch {
+			// if the parse fails, return empty url
+			return '';
+		}
 
 		// parse through the results
 		let cover_url = '';
 		Object.entries(results).forEach(([id, book]) => {
 			// skip all entries once one is found
-			if(cover_url.length > 0) 
+			if(cover_url.length > 0)
 				return;
 			// skip if no thumbnail url in entry
 			if(!book.hasOwnProperty('thumbnail_url'))
@@ -274,7 +314,7 @@ class FolioTokenManager {
 }
 
 async function okapiGet(apipath, foliohost, tenant, token = '') {
-	return new Promise((resolve,_) => {
+	return new Promise((resolve,reject) => {
 		const path = apipath;
 		const method = 'GET';
 		const options = {
@@ -289,11 +329,17 @@ async function okapiGet(apipath, foliohost, tenant, token = '') {
 		if(token.length > 0)
 			options.headers['X-Okapi-Token'] = token;
 
+		let statusCode, statusMessage;
 		let headers = {};
 		let data = '';
 		const request = https.request(options, (response) => {
 			// set the encoding to avoid gibberish binary data
 			response.setEncoding('utf8');
+
+			if(response.statusCode != 200) {
+				response.resume(); // clear memory
+				return reject('Returned status ' + response.statusCode + ': ' + response.statusMessage);
+			}
 
 			headers = response.headers;
 			// As data starts streaming in, add each chunk to "data"
@@ -318,7 +364,7 @@ async function okapiGet(apipath, foliohost, tenant, token = '') {
 };
 
 async function okapiPost(apipath, body, foliohost, tenant, token = '') {
-	return new Promise((resolve,_) => {
+	return new Promise((resolve,reject) => {
 		const path = apipath;
 		const method ='POST';
 
@@ -340,7 +386,14 @@ async function okapiPost(apipath, body, foliohost, tenant, token = '') {
 		const request = https.request(options, (response) => {
 			// Set the encoding, so we don't get log to the console a bunch of gibberish binary data
 			response.setEncoding('utf8');
+			
 			headers = response.headers;
+			
+			if(response.statusCode != 201) {
+				response.resume(); // clear memory
+				return reject('Returned status ' + response.statusCode + ': ' + response.statusMessage);
+			}
+			
 			// As data starts streaming in, add each chunk to "data"
 			response.on('data', (chunk) => {
 				data += chunk;

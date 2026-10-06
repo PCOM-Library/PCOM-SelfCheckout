@@ -62,6 +62,10 @@ footer {
 
 p {
 	line-height: 1.4em;
+	margin: 0;
+}
+p + p {	
+	margin: 1rem 0 0; 
 }
 
 label {
@@ -204,7 +208,7 @@ fieldset:not(.active-step) {
 }
 
 
-body.error {
+body.error, body.success {
 	main {
 		display: flex;
 		flex-direction: column;
@@ -222,17 +226,14 @@ body.error {
 		h2 {
 			margin: 1rem 0 2rem;
 			.fa-triangle-exclamation { color: var(--pcom-dark-red); }
+			.fa-book-open-reader { color: var(--pcom-green, #070); }
 		}
-		.error_message {
+		.error_message, .message {
 			background-color: var(--pcom-cool-gray);
 			border: solid 3px var(--pcom-dark-blue);
 			border-radius: 1rem;
 			padding: 2rem;
 
-			
-			p { margin: 0; }
-			p + p {	margin: 1rem 0 0; }
-			
 			.inset_item {
 				margin: .5em auto 0;
 				width: 90%;

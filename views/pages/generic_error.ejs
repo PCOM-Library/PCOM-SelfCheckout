@@ -21,7 +21,8 @@
 					<p><%- message %></p>
 					<% if(locals?.exception_error && exception_error != 'Error') { %>
 					<div class="debug">
-Man						<p><%= exception_error %></p>
+						<h3>Debugging Information:</h3>
+						<p><%= exception_error %></p>
 					</div>
 					<% } %>
 				</div>
