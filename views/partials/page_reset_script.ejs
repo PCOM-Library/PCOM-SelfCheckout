@@ -10,7 +10,7 @@
 			lbar.style.width = barWidthMax + 'px';
 			rbar.style.width = barWidthMax + 'px';
 			
-			var time_limit = 20;
+			var time_limit = 25;
 			var seconds_left = time_limit;
 			var interval = setInterval(function() {
 			
@@ -23,7 +23,7 @@
 				else if (seconds_left <= 0) {
 					 timer.innerHTML = '00'; 
 					 clearInterval(interval);
-					 //window.location.href= '/'; 
+					 window.location.href= '/'; 
 				}
 			}, 1000);
 		</script>

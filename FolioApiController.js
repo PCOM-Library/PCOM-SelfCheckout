@@ -12,7 +12,6 @@ class FolioApiController {
 	// ********************************************
 	static #instance;
 	constructor() {
-		console.log('FAC constructor');
 		if(!FolioApiController.#instance)
 			FolioApiController.#instance = this;
 
@@ -30,7 +29,6 @@ class FolioApiController {
 		return FolioApiController.#instance;
 	}
 	static getInstance() {
-		console.log('FolioApiController get instance called.....');
 		if(!FolioApiController.#instance)
 				return new FolioApiController();
 		else
@@ -145,7 +143,6 @@ class FolioApiController {
 	// Checkout Item
 	// ********************************************
 	async checkoutItemForUser(user, item, servicepoint) {
-		console.log('Attempting Checkout');
 		let token_value = await this.token_control.get();
 		let path = '/circulation/check-out-by-barcode';
 		let body = JSON.stringify({
@@ -288,7 +285,6 @@ class FolioTokenManager {
 		this.token_expire = null;
 	}
 	async get() {
-		console.log('Expire: ', this.token_expire,Date.now());
 		if(this.token_value === null)
 			await this.generateToken();
 		else if(this.token_expire < Date.now())
@@ -296,7 +292,6 @@ class FolioTokenManager {
 		return this.token_value;
 	}
 	async generateToken() {
-		console.log('Token regenerated');
 		let path = '/authn/login-with-expiry';
 		let body = JSON.stringify({
 			tenant: this.tenant,
@@ -356,6 +351,7 @@ async function okapiGet(apipath, foliohost, tenant, token = '') {
 		// Log errors if any occur
 		request.on('error', (error) => {
 			console.error(error);
+			return resolve({},{});
 		});
 
 		// End the request
@@ -384,7 +380,6 @@ async function okapiPost(apipath, body, foliohost, tenant, token = '') {
 		let headers = {};
 		let data = '';
 		const request = https.request(options, (response) => {
-			// Set the encoding, so we don't get log to the console a bunch of gibberish binary data
 			response.setEncoding('utf8');
 			
 			headers = response.headers;
@@ -407,9 +402,8 @@ async function okapiPost(apipath, body, foliohost, tenant, token = '') {
 
 		// Log errors if any occur
 		request.on('error', (error) => {
-			console.error('\n\nERRORS--------------------');
 			console.error(error);
-			console.error('---------------------\n');
+			return resolve({},{});
 		});
 
 		request.write(body);

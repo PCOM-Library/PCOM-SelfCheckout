@@ -45,7 +45,7 @@ app.set('view engine', 'ejs');
 app.locals.campus_long = campusLong;
 app.locals.campus_short = campusShort;
 
-app.listen(port,hostname, () => {
+app.listen(port, hostname, () => {
 	console.log(`API server listening on port ${port}`);
 });
 
@@ -58,9 +58,6 @@ app.post('/confirm', async (request, response) => {
 	let body = request.body;
 	let book_barcode = body.book_barcode;
 	let patron_barcode = body.patron_barcode;
-	//patron_barcode = '000000543';
-	//book_barcode = '32243001436003';
-	//book_barcode = '32243001734480';
 
 	let ejs_vars = {};
 	ejs_vars.book_barcode = book_barcode;
@@ -71,7 +68,6 @@ app.post('/confirm', async (request, response) => {
 	
 	let user, item, cover_url;
 	folioAPI.getUserData(patron_barcode).then(data => {
-		console.log('Got User Data');
 		// Grab patron data and confirm patron exists and is active
 		let userJSON = JSON.parse(data);
 		// check that a singular user was found
@@ -209,18 +205,9 @@ app.post('/confirm', async (request, response) => {
 			ejs_vars.exception_error = error;
 			return response.render('pages/generic_error', ejs_vars);
 		}
-		console.log('exiting promise chain due to errors');
 		return;
 	}).finally(() => {
-		console.log('Promize chain complete');
+		// If all else has completed
 	});
 	
 });
-
-
-
-
-app.post('/api/run/checkout', (request, response) => {
-	console.log("POST RECEIVED");
-});
-
