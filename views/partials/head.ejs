@@ -11,3 +11,8 @@
 		<link rel="stylesheet" type="text/css" href="/checkout.css">
 
 		<script src="/scripts.js"></script>
+		
+		<% if(locals?.cover_url) { %>
+			<!-- Book Cover URL -->
+			<link rel="preload" as="image" href="<%= cover_url %>" fetchpriority="high">
+		<% } %>
