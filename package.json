@@ -1,8 +1,8 @@
 {
   "name": "pcom-selfcheckout",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
-  "main": "app.js",
+  "main": "checkout_app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node checkout_app.js"
@@ -11,9 +11,16 @@
     "type": "git",
     "url": "git+https://github.com/PCOM-Library/PCOM-SelfCheckout.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "FOLIO",
+    "OKAPI",
+    "self-checkout",
+    "checkout",
+    "cover images",
+    "Open Library"
+  ],
+  "author": "Kate Deibel",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/PCOM-Library/PCOM-SelfCheckout/issues"
   },
@@ -24,6 +31,7 @@
     "dotenv": "^17.4.2",
     "ejs": "^6.0.1",
     "express": "^5.2.1",
+    "is-reachable": "^6.1.0",
     "title-case": "^4.3.2"
   },
   "type": "commonjs"

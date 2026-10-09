@@ -4,6 +4,13 @@
 
 const https = require('https');
 const dotenv = require('dotenv');
+// const temp_module = await import('is-reachable');
+// const isReachable = temp_module.default;
+
+async function isAvailable(url) {
+	const { default: isReachable } = await import('is-reachable');
+	return isReachable(url, {signal: AbortSignal.timeout(1500)} );
+}
 
 class FolioApiController {
 	// ********************************************
@@ -163,6 +170,11 @@ class FolioApiController {
 	async generateOpenLibraryQueryPathFromItem(item) {
 		const path_start = '/api/books?bibkeys=';
 		const path_end = '&format=json';
+		
+		// check if openlibrary.org is even up, return empty path if note
+		if(!await isAvailable('openlibrary.org')) {
+			return '';
+		}
 
 		// instead of using the LCCN and ISBN calls, we'll just pull the instance once
 		let data = await this.getInstanceFromItem(item);
@@ -198,7 +210,6 @@ class FolioApiController {
 			path = path_start + isbn_bits + path_end;
 		else
 			path = '';
-
 		return path;
 	}
 	async queryOpenLibraryData(path) {

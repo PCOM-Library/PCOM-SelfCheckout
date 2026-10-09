@@ -8,7 +8,6 @@ const folioAPI = require('./FolioApiController');
 
 const dotenv = require('dotenv');
 dotenv.config({path: '.env-checkout'});
-const hostname = process.env.HOSTNAME || '127.0.0.1';
 const port = process.env.PORT || 3000;
 const servicepoint = process.env.SERVICEPOINT || '';
 const campusLong = process.env.CAMPUS_LONG || '';
@@ -45,7 +44,7 @@ app.set('view engine', 'ejs');
 app.locals.campus_long = campusLong;
 app.locals.campus_short = campusShort;
 
-app.listen(port, hostname, () => {
+app.listen(port, () => {
 	console.log(`API server listening on port ${port}`);
 });
 

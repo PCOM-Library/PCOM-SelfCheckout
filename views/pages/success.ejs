@@ -17,26 +17,26 @@
 					Checkout Complete
 					<span class="fa-solid fa-book-open-reader"></span>
 				</h2>
-				<div class="message>
+				<div class="message">
 					<p>
 						Thank you, <%= patronName %>. The following item is due back 
 						on <%= dueDate %> by <%= dueTime %>.
 					</p>
 					
 					<% if(locals?.item) {%>
-						<div class="inset_item">
-							<% if(locals?.cover_url) { %>
-								<div class="book_cover">
-									<span id="cover_alt_start" hidden>Cover of</span>
-									<img src="<%= cover_url %>" aria-labelledby="cover_alt_start item_title">
-								</div>
-							<% } %>
-							<div class="metadata">
-								<div class="title" id="item_title"><%= item_title %></div>
-								<hr aria-hidden="true">
-								<div class="author"><%= item_author %></div>
+					<div class="inset_item">
+						<% if(locals?.cover_url) { %>
+							<div class="book_cover">
+								<span id="cover_alt_start" hidden>Cover of</span>
+								<img src="<%= cover_url %>" aria-labelledby="cover_alt_start item_title">
 							</div>
+						<% } %>
+						<div class="metadata">
+							<div class="title" id="item_title"><%= item_title %></div>
+							<hr aria-hidden="true">
+							<div class="author"><%= item_author %></div>
 						</div>
+					</div>
 					<%}%>						
 					<% if(locals?.cover_url) { %>
 						<div class="cover_disclaimer">
